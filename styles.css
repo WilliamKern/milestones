@@ -5,3 +5,7 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 @media(max-width:480px){.controls .search-wrap{flex-basis:100%}.controls .small-select{flex:1;max-width:100%;width:100%}}
+
+/* v1.2: a quiet, live elapsed-since-ending label beneath past status. */
+.card-status-info{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
+.elapsed-since{color:var(--muted);font-size:12px;line-height:1.4;letter-spacing:-.05px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}

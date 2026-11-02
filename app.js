@@ -1,4 +1,4 @@
-import {todayISO,eventStatus,eventSpan,readableParts,dateLabel,progress,daysBetween,parseDate} from './date-utils.js';
+import {todayISO,eventStatus,eventSpan,readableParts,dateLabel,timeSinceLabel,progress,daysBetween,parseDate} from './date-utils.js';
 import {CloudSync} from './sync.js';
 const KEY='milestones_data_v1';
 const CATEGORIES={work:['Work','💼'],housing:['Housing','🏡'],education:['Education','🎓'],relationships:['Relationships','❤️'],hobbies:['Hobbies','🎨'],travel:['Travel','✈️'],other:['Other','✨']};
@@ -43,7 +43,7 @@ function card(e,index,list){
   <div class="card-top"><div class="card-icon" aria-hidden="true">${esc(eventEmoji(e))}</div><div class="card-meta"><h3 class="card-title">${esc(e.title)}</h3><div class="card-category">${esc(catName(e))}${state.prefs.showDates?' · '+esc(dateText):''}</div></div>
   <button class="card-pin ${e.pinned?'pinned':''}" data-action="pin" data-id="${esc(e.id)}" aria-label="${e.pinned?'Unpin':'Pin'} ${esc(e.title)}" title="${e.pinned?'Unpin':'Pin'}">${icon('pin')}</button></div>
   <button class="card-read" data-action="detail" data-id="${esc(e.id)}"><span class="card-label">${label}</span><span class="duration">${esc(duration)}</span></button>
-  <div class="card-bottom"><span class="status ${status}">${status==='ongoing'?'Ongoing':status==='upcoming'?'Upcoming':'Past'}</span><div class="card-actions">
+  <div class="card-bottom"><div class="card-status-info"><span class="status ${status}">${status==='ongoing'?'Ongoing':status==='upcoming'?'Upcoming':'Past'}</span>${status==='completed'?`<span class="elapsed-since">${esc(timeSinceLabel(e,todayISO(),state.prefs.duration))}</span>`:''}</div><div class="card-actions">
   ${showArrows?`<button class="subtle-button" data-action="up" data-id="${esc(e.id)}" aria-label="Move ${esc(e.title)} up" ${pos===0?'disabled':''}>${icon('chevron-up')}</button><button class="subtle-button" data-action="down" data-id="${esc(e.id)}" aria-label="Move ${esc(e.title)} down" ${pos===sameGroup.length-1?'disabled':''}>${icon('chevron-down')}</button>`:''}
   <button class="subtle-button" data-action="edit" data-id="${esc(e.id)}" aria-label="Edit ${esc(e.title)}">${icon('pencil')}</button></div></div>
  </article>`;
@@ -88,7 +88,7 @@ function detail(id){const e=state.events.find(x=>x.id===id&&!x.deletedAt);if(!e)
  $('#detailContent').innerHTML=`<div class="sheet-grip"></div><div class="sheet-head"><span class="eyebrow" style="margin:0">YOUR MILESTONE</span><button class="icon-button" data-close="detailDialog" aria-label="Close">${icon('x')}</button></div>
  <div class="detail-heading"><div class="card-icon" style="background:${c[1]}">${esc(eventEmoji(e))}</div><div><h2>${esc(e.title)}</h2><span class="small-note">${esc(catName(e))}</span></div></div>
  <div class="card-label">${status==='upcoming'?'Starts in':status==='completed'?'Time recorded':'Time so far'}</div><div class="detail-duration">${esc(durationText(e))}</div>
- <dl class="detail-list"><div><dt>Status</dt><dd>${status==='upcoming'?'Upcoming':status==='completed'?'Past':'Ongoing'}</dd></div><div><dt>Start date</dt><dd>${dateLabel(e.startDate)}</dd></div>${e.endDate?`<div><dt>End date</dt><dd>${dateLabel(e.endDate)}</dd></div>`:''}</dl>
+ <dl class="detail-list"><div><dt>Status</dt><dd>${status==='upcoming'?'Upcoming':status==='completed'?'Past':'Ongoing'}</dd></div><div><dt>Start date</dt><dd>${dateLabel(e.startDate)}</dd></div>${e.endDate?`<div><dt>End date</dt><dd>${dateLabel(e.endDate)}</dd></div>`:''}${status==='completed'?`<div><dt>Time since ${e.endDate?'end':'event'}</dt><dd>${esc(timeSinceLabel(e,todayISO(),state.prefs.duration))}</dd></div>`:''}</dl>
  ${e.note?`<p class="detail-note">${esc(e.note)}</p>`:''}<div class="sheet-buttons"><button class="secondary-button" data-close="detailDialog">Close</button><button class="primary-button" data-action="edit-from-detail" data-id="${esc(e.id)}">${icon('pencil')} Edit</button></div>`;
  showDialog('detailDialog');
 }

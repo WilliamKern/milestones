@@ -49,6 +49,15 @@ export function readableParts(parts, unit='calendar') {
   if(unit==='months') return [parts.totalMonths&&n(parts.totalMonths,'month'),parts.days&&n(parts.days,'day')].filter(Boolean).join(', ') || '0 days';
   return [parts.years&&n(parts.years,'year'),parts.months&&n(parts.months,'month'),parts.days&&n(parts.days,'day')].filter(Boolean).join(', ') || '0 days';
 }
+/** A secondary counter for past entries; it never changes the recorded duration. */
+export function timeSinceLabel(event, today = todayISO(), unit = 'calendar') {
+  if (eventStatus(event, today) !== 'completed') return null;
+  const end = event.endDate || event.startDate;
+  const verb = event.endDate ? 'Ended' : 'Happened';
+  const elapsedDays = daysBetween(end, today);
+  if (elapsedDays === 0) return `${verb} today`;
+  return `${verb} ${readableParts(calendarSpan(end, today, false), unit)} ago`;
+}
 export function dateLabel(iso) { return parseDate(iso).toLocaleDateString('en-US',{timeZone:'UTC',month:'short',day:'numeric',year:'numeric'}); }
 export function progress(event,today=todayISO()) {
   if (!event.endDate) return null;
