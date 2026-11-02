@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f8f9fa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Milestones">
+  <meta name="description" content="A beautiful, private life timeline. Count up, count down, and remember every chapter.">
+  <title>Milestones</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<svg class="svgdefs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+ <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+ <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+ <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+ <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+ <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+ <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-7M3 4v5h5"/><path d="M12 7v5l4 2"/></symbol>
+ <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12 3.5 14 5l2.7-.4 1 2.6 2.4 1.4-.5 2.6.8 2.8-2.2 1.8-.6 2.7-2.8.2L12 21l-2.8-2.3-2.8-.2-.6-2.7-2.2-1.8.8-2.8-.5-2.6 2.4-1.4 1-2.6L10 5z"/><circle cx="12" cy="12" r="3"/></symbol>
+ <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+ <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></symbol>
+ <symbol id="i-pin" viewBox="0 0 24 24"><path d="m9 3 6 0 1 5 3 3-3 2-1 8-3-5-3 5-1-8-3-2 3-3z"/></symbol>
+ <symbol id="i-pencil" viewBox="0 0 24 24"><path d="m4 16 0 4 4 0L20 8l-4-4L4 16zM14 6l4 4"/></symbol>
+ <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+ <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M6 18H5a4 4 0 0 1-.7-7.9A7.5 7.5 0 0 1 19 12a3 3 0 0 1-.2 6H18M12 11v10m-4-4 4 4 4-4"/></symbol>
+ <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5z"/></symbol>
+ <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 18v3h16v-3"/></symbol>
+ <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 20V7m-5 5 5-5 5 5M4 6V3h16v3"/></symbol>
+ <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M7 7l1 14h8l1-14M10 11v6m4-6v6"/></symbol>
+ <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+ <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 1 1 8 0v3"/></symbol>
+</svg>
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand"><span class="brand-mark"><span class="brand-line"></span><span class="brand-dot"></span><span class="brand-line right"></span></span><span>milestones<span class="brand-point">.</span></span></div>
+    <button id="addTop" class="icon-button add-top" aria-label="Add milestone" title="Add milestone"><svg><use href="#i-plus"/></svg></button>
+  </header>
+  <main id="app" class="app-main" aria-live="polite"></main>
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <button type="button" data-tab="home" class="nav-item selected"><svg><use href="#i-clock"/></svg><span>My time</span></button>
+    <button type="button" data-tab="history" class="nav-item"><svg><use href="#i-history"/></svg><span>History</span></button>
+    <button type="button" data-tab="settings" class="nav-item"><svg><use href="#i-settings"/></svg><span>Settings</span></button>
+  </nav>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<dialog id="eventDialog" class="sheet-dialog">
+  <form id="eventForm" class="sheet-content">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="sheet-head"><h2 id="eventDialogTitle">New milestone</h2><button type="button" class="icon-button" data-close="eventDialog" aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
+    <input name="id" type="hidden">
+    <label for="eventTitle">Name <span class="required">*</span></label>
+    <input id="eventTitle" name="title" type="text" maxlength="100" placeholder="e.g. New job at Farmstead" required autocomplete="off">
+    <div class="two-cols"><div><label for="startDate">Start date <span class="required">*</span></label><input id="startDate" name="startDate" type="date" required></div><div><label for="endDate">End date <span class="muted">optional</span></label><input id="endDate" name="endDate" type="date"></div></div>
+    <p class="input-note">Leave the end date empty to count up from the start date. Set an end date to freeze the duration when that date passes.</p>
+    <div class="two-cols"><div><label for="eventCategory">Category</label><select name="category" id="eventCategory"></select></div><div><label for="eventEmoji">Icon / emoji</label><input id="eventEmoji" name="emoji" type="text" maxlength="8" placeholder="✨"></div></div>
+    <label>Card color</label><div id="colorChoices" class="color-choices" role="group" aria-label="Card color"></div>
+    <label for="eventArrival">When the start date arrives (no end date)</label><select name="afterBehavior" id="eventArrival"><option value="countup">Keep counting up</option><option value="complete">Mark event completed</option></select>
+    <label for="eventNote">Notes <span class="muted">optional</span></label><textarea id="eventNote" name="note" maxlength="3000" rows="3" placeholder="A little context you want to remember..."></textarea>
+    <div class="sheet-buttons"><button type="button" id="deleteEvent" class="danger-button" hidden>Delete</button><button type="submit" class="primary-button">Save milestone</button></div>
+  </form>
+</dialog>
+<dialog id="detailDialog" class="sheet-dialog"><div id="detailContent" class="sheet-content"></div></dialog>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
