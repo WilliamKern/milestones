@@ -3,7 +3,7 @@ import {CloudSync} from './sync.js';
 const KEY='milestones_data_v1';
 const CATEGORIES={work:['Work','💼'],housing:['Housing','🏡'],education:['Education','🎓'],relationships:['Relationships','❤️'],hobbies:['Hobbies','🎨'],travel:['Travel','✈️'],other:['Other','✨']};
 const COLORS={teal:['#4b9b9b','#e7f5f4'],blue:['#6591bc','#eaf1f9'],sage:['#8ba77a','#eff4e8'],violet:['#a089c8','#f2ecfb'],peach:['#d99875','#fcf0ea'],gold:['#d7ab58','#f9f1dc']};
-const DEFAULT_PREFS={view:'cards',sort:'manual',duration:'calendar',theme:'system',showCompletedHome:false,showDates:false};
+const DEFAULT_PREFS={view:'cards',sort:'manual',duration:'calendar',theme:'system',showCompletedHome:true,showDates:false};
 let state=load(), tab='home', filter='all', search='', cloud=new CloudSync(), cloudMessage='',cloudBusy=false, syncTimer=null,lastDay=todayISO(),toastTimeout=null;
 const $=(sel,root=document)=>root.querySelector(sel);
 const esc=(text='')=>String(text??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -34,8 +34,8 @@ function sorted(entries){
 }
 function durationText(e){try{return readableParts(eventSpan(e),state.prefs.duration)}catch{return 'Check dates'}}
 function card(e,index,list){
- const status=eventStatus(e), c=eventColor(e), pct=progress(e), duration=durationText(e);
- const label=status==='upcoming'?'Starts in':status==='completed'?'Total time':'Time so far';
+ const status=eventStatus(e), c=eventColor(e), duration=durationText(e);
+ const label=status==='upcoming'?'Starts in':status==='completed'?'Time recorded':'Time so far';
  const dateText=e.endDate?`${dateLabel(e.startDate)} – ${dateLabel(e.endDate)}`:`Since ${dateLabel(e.startDate)}`;
  const showArrows=state.prefs.sort==='manual';
  const sameGroup=list.filter(x=>!!x.pinned===!!e.pinned),pos=sameGroup.findIndex(x=>x.id===e.id);
@@ -43,26 +43,25 @@ function card(e,index,list){
   <div class="card-top"><div class="card-icon" aria-hidden="true">${esc(eventEmoji(e))}</div><div class="card-meta"><h3 class="card-title">${esc(e.title)}</h3><div class="card-category">${esc(catName(e))}${state.prefs.showDates?' · '+esc(dateText):''}</div></div>
   <button class="card-pin ${e.pinned?'pinned':''}" data-action="pin" data-id="${esc(e.id)}" aria-label="${e.pinned?'Unpin':'Pin'} ${esc(e.title)}" title="${e.pinned?'Unpin':'Pin'}">${icon('pin')}</button></div>
   <button class="card-read" data-action="detail" data-id="${esc(e.id)}"><span class="card-label">${label}</span><span class="duration">${esc(duration)}</span></button>
-  ${pct!==null?`<div class="progress-track" aria-label="${pct.percent}% of date range elapsed"><div class="progress-fill" style="width:${pct.percent}%"></div></div><div class="progress-caption">${pct.percent}% of period</div>`:''}
-  <div class="card-bottom"><span class="status ${status}">${status==='ongoing'?'Ongoing':status==='upcoming'?'Upcoming':'Completed'}</span><div class="card-actions">
+  <div class="card-bottom"><span class="status ${status}">${status==='ongoing'?'Ongoing':status==='upcoming'?'Upcoming':'Past'}</span><div class="card-actions">
   ${showArrows?`<button class="subtle-button" data-action="up" data-id="${esc(e.id)}" aria-label="Move ${esc(e.title)} up" ${pos===0?'disabled':''}>${icon('chevron-up')}</button><button class="subtle-button" data-action="down" data-id="${esc(e.id)}" aria-label="Move ${esc(e.title)} down" ${pos===sameGroup.length-1?'disabled':''}>${icon('chevron-down')}</button>`:''}
   <button class="subtle-button" data-action="edit" data-id="${esc(e.id)}" aria-label="Edit ${esc(e.title)}">${icon('pencil')}</button></div></div>
  </article>`;
 }
 function section(items){const list=sorted(items);if(!list.length)return '';return `<div class="card-grid">${list.map((e,i)=>card(e,i,list)).join('')}</div>`;}
 function matching(entries){return entries.filter(e=>(filter==='all'||e.category===filter) && (!search||`${e.title} ${e.note||''} ${catName(e)}`.toLowerCase().includes(search.toLowerCase())));}
-function emptyHTML(kind){
- const isHistory=kind==='history',isSearch=search||filter!=='all';
- return `<div class="empty"><div class="empty-icon">${icon(isHistory?'history':'sparkle')}</div><h2>${isSearch?'Nothing matches yet':isHistory?'Your story is still unfolding':'Every chapter counts.'}</h2><p>${isSearch?'Try another search or category.':isHistory?'Once a milestone has an end date in the past, it will live here permanently.':'Track your career, homes, hobbies, travels, and everything worth remembering.'}</p>${!isHistory&&!isSearch?`<button class="primary-button" data-action="add">Create your first milestone</button>`:''}</div>`;
+function emptyHTML(){
+ const isSearch=search||filter!=='all';
+ return `<div class="empty"><div class="empty-icon">${icon('sparkle')}</div><h2>${isSearch?'Nothing matches yet':'Every chapter counts.'}</h2><p>${isSearch?'Try another search or category.':'Track your career, homes, hobbies, travels, and everything worth remembering.'}</p>${!isSearch?`<button class="primary-button" data-action="add">Add your first entry</button>`:''}</div>`;
 }
 function chipsHTML(){return `<div class="chips" role="group" aria-label="Category filter"><button data-filter="all" class="chip ${filter==='all'?'selected':''}">All</button>${Object.entries(CATEGORIES).map(([id,[name,emoji]])=>`<button data-filter="${id}" class="chip ${filter===id?'selected':''}">${emoji} ${name}</button>`).join('')}</div>`;}
-function home(){const history=tab==='history';const collection=activeEvents().filter(e=>history?eventStatus(e)==='completed':state.prefs.showCompletedHome||eventStatus(e)!=='completed');const list=matching(collection);
- return `<p class="eyebrow">YOUR PERSONAL TIMELINE</p><h1 class="hero-title">${history?'The chapters before.':'Make time meaningful.'}</h1><p class="hero-caption">${history?'Finished chapters, kept forever.':'The little and big things that make up your story.'}</p>
- <div class="controls"><div class="search-wrap">${icon('search')}<input id="searchInput" type="search" aria-label="Search milestones" value="${esc(search)}" placeholder="Search your milestones..."></div><select id="durationSelect" class="small-select" aria-label="Duration format"><option value="calendar" ${state.prefs.duration==='calendar'?'selected':''}>Years · months · days</option><option value="months" ${state.prefs.duration==='months'?'selected':''}>Total months</option><option value="weeks" ${state.prefs.duration==='weeks'?'selected':''}>Weeks + days</option><option value="days" ${state.prefs.duration==='days'?'selected':''}>Total days</option></select></div>
+function home(){const collection=activeEvents();const list=matching(collection);
+ return `<p class="eyebrow">YOUR PERSONAL TIMELINE</p><h1 class="hero-title">Your time, all together.</h1><p class="hero-caption">The things ahead, the chapters you're in, and the time you've spent.</p>
+ <div class="controls"><div class="search-wrap">${icon('search')}<input id="searchInput" type="search" aria-label="Search entries" value="${esc(search)}" placeholder="Search your entries..."></div><select id="durationSelect" class="small-select" aria-label="Duration format"><option value="calendar" ${state.prefs.duration==='calendar'?'selected':''}>Years · months · days</option><option value="months" ${state.prefs.duration==='months'?'selected':''}>Total months</option><option value="weeks" ${state.prefs.duration==='weeks'?'selected':''}>Weeks + days</option><option value="days" ${state.prefs.duration==='days'?'selected':''}>Total days</option></select></div>
  ${chipsHTML()}
- <section id="cardsRegion">${cardRegion(list,history,collection.length)}</section>`;
+ <section id="cardsRegion">${cardRegion(list)}</section>`;
 }
-function cardRegion(list,isHistory,total){return list.length?`<div class="section-head"><h2>${isHistory?'Completed milestones':'Your milestones'}</h2><span>${list.length} ${list.length===1?'entry':'entries'}</span></div>${section(list)}`:emptyHTML(isHistory?'history':'home');}
+function cardRegion(list){return list.length?`<div class="section-head"><h2>All entries</h2><span>${list.length} ${list.length===1?'entry':'entries'}</span></div>${section(list)}`:emptyHTML();}
 function options(map,sel){return Object.entries(map).map(([val,label])=>`<option value="${val}" ${sel===val?'selected':''}>${label}</option>`).join('');}
 function settings(){let cloudStatus=cloud.ready?`<span class="success-text">Signed in as ${esc(cloud.email)}</span>`:cloud.config?'Project configured, not signed in':'Not configured';
  return `<p class="eyebrow">YOUR SPACE</p><h1 class="hero-title hero-small">Make it yours.</h1><p class="hero-caption">Little choices that make Milestones feel like your app.</p>
@@ -71,17 +70,9 @@ function settings(){let cloudStatus=cloud.ready?`<span class="success-text">Sign
   <div class="setting-row"><div><label for="p-duration">Time units</label><small>Change the default display any time.</small></div><select id="p-duration" data-pref="duration">${options({calendar:'Years / months / days',months:'Months + days',weeks:'Weeks + days',days:'Total days'},state.prefs.duration)}</select></div>
   <div class="setting-row"><div><label for="p-sort">Order</label><small>Manual includes up/down reorder controls.</small></div><select id="p-sort" data-pref="sort">${options({manual:'Custom order',recent:'Newest first',oldest:'Oldest first',category:'By category',status:'By status'},state.prefs.sort)}</select></div>
   <div class="setting-row"><div><label for="p-dates">Show dates on cards</label><small>Otherwise, see dates when you tap an entry.</small></div><input id="p-dates" type="checkbox" data-pref="showDates" ${state.prefs.showDates?'checked':''}></div>
-  <div class="setting-row"><div><label for="p-completed">Show history on My time</label><small>History always has its own dedicated tab.</small></div><input id="p-completed" type="checkbox" data-pref="showCompletedHome" ${state.prefs.showCompletedHome?'checked':''}></div>
  </div>
  <h2 class="setting-section-title">Data & backups</h2><div class="setting-card"><div class="cloud-panel"><p>Your entries are saved locally. Make occasional backups, especially before clearing Safari data or deleting the app.</p></div><div class="setting-actions"><button class="secondary-button" data-action="export">${icon('download')} Export backup</button><button class="secondary-button" data-action="import">${icon('upload')} Import backup</button></div></div>
- <h2 class="setting-section-title">Free cloud sync · optional</h2><div class="setting-card"><div class="cloud-panel">
- <p>Sync between iPhone and computer using your own Supabase Free project. You can use Milestones without signing in. Cloud sync uses an account you create below, not your GitHub password.</p><p><strong>Status:</strong> ${cloudStatus}</p>
- <form id="cloudConfig" class="stack"><label for="projectUrl">Supabase project URL</label><input id="projectUrl" type="url" name="url" placeholder="https://yourproject.supabase.co" value="${esc(cloud.config?.url||'')}" required><label for="projectKey">Publishable / anon key (never a secret key)</label><input id="projectKey" type="text" name="key" placeholder="sb_publishable_... or legacy anon key" value="${esc(cloud.config?.key||'')}" required><button type="submit" class="secondary-button">Save cloud connection</button></form>
- ${cloud.config?`<form id="cloudAuth" class="stack" autocomplete="on"><label for="cloudEmail">Email</label><input id="cloudEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" value="${esc(cloud.email)}" required><label for="cloudPassword">Password</label><input id="cloudPassword" name="password" type="password" autocomplete="${cloud.ready?'current-password':'new-password'}" minlength="6" placeholder="Your cloud account password" required><div class="setting-actions" style="padding:0"><button type="submit" class="primary-button" data-auth="login">Sign in</button><button type="submit" class="secondary-button" data-auth="register">Create account</button></div></form>`:''}
- ${cloud.ready?`<div class="setting-actions" style="padding-left:0;padding-right:0"><button class="primary-button" data-action="sync">${icon('cloud')} Sync now</button><button class="secondary-button" data-action="signout">Sign out</button></div>`:''}
- <p id="cloudResult" class="small-note">${esc(cloudMessage || (cloud.ready?'Changes sync when online. A manual sync is always available.':'See README.md for one-time Supabase setup instructions.'))}</p>
- </div></div>
- <div class="small-note" style="padding:8px 4px 0">Milestones v1.0 · Free, personal, local-first · Made with care.<br>Installed Home Screen apps may store data separately from Safari. Use cloud sync or a backup when changing devices.</div>`;
+ <div class="small-note" style="padding:8px 4px 0">Milestones v1.1 · Free and local to this device. No account required.<br>Entries may be lost if you clear website data or remove the installed app. You can export a copy under Data & backups.</div>`;
 }
 function render(){applyTheme();$('#app').innerHTML=tab==='settings'?settings():home();$('#addTop').style.visibility=tab==='settings'?'hidden':'visible';}
 function showDialog(id){document.getElementById(id).showModal();}
@@ -91,13 +82,13 @@ function editEvent(id=null){
  const e=id?state.events.find(e=>e.id===id):null,form=$('#eventForm');form.reset();
  form.elements.id.value=e?.id||'';form.elements.title.value=e?.title||'';form.elements.startDate.value=e?.startDate||todayISO();form.elements.endDate.value=e?.endDate||'';
  form.elements.category.value=e?.category||'work';form.elements.emoji.value=e?.emoji||'';form.elements.color.value=e?.color||'teal';form.elements.afterBehavior.value=e?.afterBehavior||'countup';form.elements.note.value=e?.note||'';
- colorButtons(form.elements.color.value);$('#deleteEvent').hidden=!e;$('#eventDialogTitle').textContent=e?'Edit milestone':'New milestone';showDialog('eventDialog');
+ colorButtons(form.elements.color.value);$('#deleteEvent').hidden=!e;$('#eventDialogTitle').textContent=e?'Edit entry':'New entry';showDialog('eventDialog');
 }
-function detail(id){const e=state.events.find(x=>x.id===id&&!x.deletedAt);if(!e)return;const c=eventColor(e),status=eventStatus(e),p=progress(e);
+function detail(id){const e=state.events.find(x=>x.id===id&&!x.deletedAt);if(!e)return;const c=eventColor(e),status=eventStatus(e);
  $('#detailContent').innerHTML=`<div class="sheet-grip"></div><div class="sheet-head"><span class="eyebrow" style="margin:0">YOUR MILESTONE</span><button class="icon-button" data-close="detailDialog" aria-label="Close">${icon('x')}</button></div>
  <div class="detail-heading"><div class="card-icon" style="background:${c[1]}">${esc(eventEmoji(e))}</div><div><h2>${esc(e.title)}</h2><span class="small-note">${esc(catName(e))}</span></div></div>
- <div class="card-label">${status==='upcoming'?'Starts in':status==='completed'?'Total time':'Time so far'}</div><div class="detail-duration">${esc(durationText(e))}</div>
- <dl class="detail-list"><div><dt>Status</dt><dd>${status==='upcoming'?'Upcoming':status==='completed'?'Completed':'Ongoing'}</dd></div><div><dt>Start date</dt><dd>${dateLabel(e.startDate)}</dd></div>${e.endDate?`<div><dt>End date</dt><dd>${dateLabel(e.endDate)}</dd></div>`:''}${p?`<div><dt>Period completed</dt><dd>${p.percent}%</dd></div>`:''}</dl>
+ <div class="card-label">${status==='upcoming'?'Starts in':status==='completed'?'Time recorded':'Time so far'}</div><div class="detail-duration">${esc(durationText(e))}</div>
+ <dl class="detail-list"><div><dt>Status</dt><dd>${status==='upcoming'?'Upcoming':status==='completed'?'Past':'Ongoing'}</dd></div><div><dt>Start date</dt><dd>${dateLabel(e.startDate)}</dd></div>${e.endDate?`<div><dt>End date</dt><dd>${dateLabel(e.endDate)}</dd></div>`:''}</dl>
  ${e.note?`<p class="detail-note">${esc(e.note)}</p>`:''}<div class="sheet-buttons"><button class="secondary-button" data-close="detailDialog">Close</button><button class="primary-button" data-action="edit-from-detail" data-id="${esc(e.id)}">${icon('pencil')} Edit</button></div>`;
  showDialog('detailDialog');
 }
@@ -152,12 +143,12 @@ $('#eventForm').addEventListener('submit',ev=>{
  const old=state.events.find(e=>e.id===id),now=timestamp();
  const data={id:old?.id||uuid(),title,startDate,endDate,category:f.elements.category.value,emoji:f.elements.emoji.value.trim(),color:f.elements.color.value,afterBehavior:f.elements.afterBehavior.value,note:f.elements.note.value.trim(),pinned:old?.pinned||false,order:old?.order??(Math.max(-10,...activeEvents().map(e=>Number(e.order)||0))+10),createdAt:old?.createdAt||now,updatedAt:now,deletedAt:null};
  if(old)Object.assign(old,data);else state.events.push(data);
- persist();closeDialog('eventDialog');render();toast(old?'Milestone updated':'Milestone created');
+ persist();closeDialog('eventDialog');render();toast(old?'Entry updated':'Entry created');
 });
-$('#deleteEvent').addEventListener('click',()=>{const id=$('#eventForm').elements.id.value;const e=state.events.find(x=>x.id===id);if(!e||!confirm(`Delete “${e.title}”? This will also remove it from synced devices.`))return;e.deletedAt=Date.now();e.updatedAt=timestamp();persist();closeDialog('eventDialog');render();toast('Milestone deleted');});
+$('#deleteEvent').addEventListener('click',()=>{const id=$('#eventForm').elements.id.value;const e=state.events.find(x=>x.id===id);if(!e||!confirm(`Delete “${e.title}” from this device?`))return;e.deletedAt=Date.now();e.updatedAt=timestamp();persist();closeDialog('eventDialog');render();toast('Entry deleted');});
 $('#importFile').addEventListener('change',ev=>importBackup(ev.target.files[0]));
 $('#app').addEventListener('input',ev=>{
- if(ev.target.id==='searchInput'){search=ev.target.value;const history=tab==='history';const collection=activeEvents().filter(e=>history?eventStatus(e)==='completed':state.prefs.showCompletedHome||eventStatus(e)!=='completed');$('#cardsRegion').innerHTML=cardRegion(matching(collection),history,collection.length);}
+ if(ev.target.id==='searchInput'){search=ev.target.value;const collection=activeEvents();$('#cardsRegion').innerHTML=cardRegion(matching(collection));}
 });
 $('#app').addEventListener('change',ev=>{
  const el=ev.target;if(el.dataset.pref){setPref(el.dataset.pref,el.type==='checkbox'?el.checked:el.value);return;}

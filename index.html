@@ -40,12 +40,11 @@
 <div class="app-shell">
   <header class="app-header">
     <div class="brand"><span class="brand-mark"><span class="brand-line"></span><span class="brand-dot"></span><span class="brand-line right"></span></span><span>milestones<span class="brand-point">.</span></span></div>
-    <button id="addTop" class="icon-button add-top" aria-label="Add milestone" title="Add milestone"><svg><use href="#i-plus"/></svg></button>
+    <button id="addTop" class="icon-button add-top" aria-label="Add entry" title="Add entry"><svg><use href="#i-plus"/></svg></button>
   </header>
   <main id="app" class="app-main" aria-live="polite"></main>
   <nav class="bottom-nav" aria-label="Main navigation">
     <button type="button" data-tab="home" class="nav-item selected"><svg><use href="#i-clock"/></svg><span>My time</span></button>
-    <button type="button" data-tab="history" class="nav-item"><svg><use href="#i-history"/></svg><span>History</span></button>
     <button type="button" data-tab="settings" class="nav-item"><svg><use href="#i-settings"/></svg><span>Settings</span></button>
   </nav>
 </div>
@@ -53,17 +52,17 @@
 <dialog id="eventDialog" class="sheet-dialog">
   <form id="eventForm" class="sheet-content">
     <div class="sheet-grip" aria-hidden="true"></div>
-    <div class="sheet-head"><h2 id="eventDialogTitle">New milestone</h2><button type="button" class="icon-button" data-close="eventDialog" aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
+    <div class="sheet-head"><h2 id="eventDialogTitle">New entry</h2><button type="button" class="icon-button" data-close="eventDialog" aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
     <input name="id" type="hidden">
     <label for="eventTitle">Name <span class="required">*</span></label>
     <input id="eventTitle" name="title" type="text" maxlength="100" placeholder="e.g. New job at Farmstead" required autocomplete="off">
     <div class="two-cols"><div><label for="startDate">Start date <span class="required">*</span></label><input id="startDate" name="startDate" type="date" required></div><div><label for="endDate">End date <span class="muted">optional</span></label><input id="endDate" name="endDate" type="date"></div></div>
-    <p class="input-note">Leave the end date empty to count up from the start date. Set an end date to freeze the duration when that date passes.</p>
+    <p class="input-note">Leave the end date empty for an ongoing counter. Add an end date to record a fixed period once it has passed. Upcoming start dates count down automatically.</p>
     <div class="two-cols"><div><label for="eventCategory">Category</label><select name="category" id="eventCategory"></select></div><div><label for="eventEmoji">Icon / emoji</label><input id="eventEmoji" name="emoji" type="text" maxlength="8" placeholder="✨"></div></div>
     <label>Card color</label><div id="colorChoices" class="color-choices" role="group" aria-label="Card color"></div>
-    <label for="eventArrival">When the start date arrives (no end date)</label><select name="afterBehavior" id="eventArrival"><option value="countup">Keep counting up</option><option value="complete">Mark event completed</option></select>
+    <label for="eventArrival">When the start date arrives (no end date)</label><select name="afterBehavior" id="eventArrival"><option value="countup">Keep counting up</option><option value="complete">Leave as a past event</option></select>
     <label for="eventNote">Notes <span class="muted">optional</span></label><textarea id="eventNote" name="note" maxlength="3000" rows="3" placeholder="A little context you want to remember..."></textarea>
-    <div class="sheet-buttons"><button type="button" id="deleteEvent" class="danger-button" hidden>Delete</button><button type="submit" class="primary-button">Save milestone</button></div>
+    <div class="sheet-buttons"><button type="button" id="deleteEvent" class="danger-button" hidden>Delete</button><button type="submit" class="primary-button">Save entry</button></div>
   </form>
 </dialog>
 <dialog id="detailDialog" class="sheet-dialog"><div id="detailContent" class="sheet-content"></div></dialog>
