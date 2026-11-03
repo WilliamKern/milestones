@@ -51,12 +51,11 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <dialog id="eventDialog" class="sheet-dialog">
   <form id="eventForm" class="sheet-content">
-    <div class="sheet-grip" aria-hidden="true"></div>
     <div class="sheet-head"><h2 id="eventDialogTitle">New entry</h2><button type="button" class="icon-button" data-close="eventDialog" aria-label="Close"><svg><use href="#i-x"/></svg></button></div>
     <input name="id" type="hidden">
     <label for="eventTitle">Name <span class="required">*</span></label>
     <input id="eventTitle" name="title" type="text" maxlength="100" placeholder="e.g. New job at Farmstead" required autocomplete="off">
-    <div class="two-cols"><div><label for="startDate">Start date <span class="required">*</span></label><input id="startDate" name="startDate" type="date" required></div><div><label for="endDate">End date <span class="muted">optional</span></label><input id="endDate" name="endDate" type="date"></div></div>
+    <div class="two-cols date-fields"><div><label for="startDate">Start date <span class="required">*</span></label><input id="startDate" name="startDate" type="date" required></div><div><label for="endDate">End date <span class="muted">optional</span></label><input id="endDate" name="endDate" type="date"></div></div>
     <p class="input-note">Leave the end date empty for an ongoing counter. Add an end date to record a fixed period once it has passed. Upcoming start dates count down automatically.</p>
     <div class="two-cols"><div><label for="eventCategory">Category</label><select name="category" id="eventCategory"></select></div><div><label for="eventEmoji">Icon / emoji</label><input id="eventEmoji" name="emoji" type="text" maxlength="8" placeholder="✨"></div></div>
     <label>Card color</label><div id="colorChoices" class="color-choices" role="group" aria-label="Card color"></div>

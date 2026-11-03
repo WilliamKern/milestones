@@ -72,11 +72,31 @@ function settings(){let cloudStatus=cloud.ready?`<span class="success-text">Sign
   <div class="setting-row"><div><label for="p-dates">Show dates on cards</label><small>Otherwise, see dates when you tap an entry.</small></div><input id="p-dates" type="checkbox" data-pref="showDates" ${state.prefs.showDates?'checked':''}></div>
  </div>
  <h2 class="setting-section-title">Data & backups</h2><div class="setting-card"><div class="cloud-panel"><p>Your entries are saved locally. Make occasional backups, especially before clearing Safari data or deleting the app.</p></div><div class="setting-actions"><button class="secondary-button" data-action="export">${icon('download')} Export backup</button><button class="secondary-button" data-action="import">${icon('upload')} Import backup</button></div></div>
- <div class="small-note" style="padding:8px 4px 0">Milestones v1.1 · Free and local to this device. No account required.<br>Entries may be lost if you clear website data or remove the installed app. You can export a copy under Data & backups.</div>`;
+ <div class="small-note" style="padding:8px 4px 0">Milestones v1.3 · Free and local to this device. No account required.<br>Entries may be lost if you clear website data or remove the installed app. You can export a copy under Data & backups.</div>`;
 }
 function render(){applyTheme();$('#app').innerHTML=tab==='settings'?settings():home();$('#addTop').style.visibility=tab==='settings'?'hidden':'visible';}
-function showDialog(id){document.getElementById(id).showModal();}
-function closeDialog(id){document.getElementById(id).close();}
+function showDialog(id){
+ const dialog=document.getElementById(id);
+ if(dialog.open)return;
+ dialog.showModal();
+ document.documentElement.classList.add('has-open-sheet');
+ document.body.classList.add('has-open-sheet');
+ // Start at the top when reusing the form, rather than reopening at an old scroll position.
+ dialog.scrollTop=0;
+}
+function closeDialog(id){
+ const dialog=document.getElementById(id);
+ if(dialog.open)dialog.close();
+}
+// Also handle Escape and native dialog close operations without leaving the page locked.
+for(const dialog of document.querySelectorAll('.sheet-dialog')){
+ dialog.addEventListener('close',()=>{
+  if(!document.querySelector('.sheet-dialog[open]')){
+   document.documentElement.classList.remove('has-open-sheet');
+   document.body.classList.remove('has-open-sheet');
+  }
+ });
+}
 function colorButtons(selected){$('#colorChoices').innerHTML=Object.entries(COLORS).map(([id,[hex]])=>`<button type="button" class="color-choice ${selected===id?'selected':''}" data-color="${id}" aria-label="${id} card color" title="${id}" style="--color:${hex}"></button>`).join('');}
 function editEvent(id=null){
  const e=id?state.events.find(e=>e.id===id):null,form=$('#eventForm');form.reset();
@@ -85,7 +105,7 @@ function editEvent(id=null){
  colorButtons(form.elements.color.value);$('#deleteEvent').hidden=!e;$('#eventDialogTitle').textContent=e?'Edit entry':'New entry';showDialog('eventDialog');
 }
 function detail(id){const e=state.events.find(x=>x.id===id&&!x.deletedAt);if(!e)return;const c=eventColor(e),status=eventStatus(e);
- $('#detailContent').innerHTML=`<div class="sheet-grip"></div><div class="sheet-head"><span class="eyebrow" style="margin:0">YOUR MILESTONE</span><button class="icon-button" data-close="detailDialog" aria-label="Close">${icon('x')}</button></div>
+ $('#detailContent').innerHTML=`<div class="sheet-head"><span class="eyebrow" style="margin:0">YOUR MILESTONE</span><button class="icon-button" data-close="detailDialog" aria-label="Close">${icon('x')}</button></div>
  <div class="detail-heading"><div class="card-icon" style="background:${c[1]}">${esc(eventEmoji(e))}</div><div><h2>${esc(e.title)}</h2><span class="small-note">${esc(catName(e))}</span></div></div>
  <div class="card-label">${status==='upcoming'?'Starts in':status==='completed'?'Time recorded':'Time so far'}</div><div class="detail-duration">${esc(durationText(e))}</div>
  <dl class="detail-list"><div><dt>Status</dt><dd>${status==='upcoming'?'Upcoming':status==='completed'?'Past':'Ongoing'}</dd></div><div><dt>Start date</dt><dd>${dateLabel(e.startDate)}</dd></div>${e.endDate?`<div><dt>End date</dt><dd>${dateLabel(e.endDate)}</dd></div>`:''}${status==='completed'?`<div><dt>Time since ${e.endDate?'end':'event'}</dt><dd>${esc(timeSinceLabel(e,todayISO(),state.prefs.duration))}</dd></div>`:''}</dl>
